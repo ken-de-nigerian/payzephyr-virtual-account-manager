@@ -18,7 +18,7 @@ final class VirtualAccountServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->mergeConfigFrom(
-            __DIR__ . '/../config/virtual-accounts.php',
+            __DIR__.'/../config/virtual-accounts.php',
             'virtual-accounts'
         );
 
@@ -60,14 +60,14 @@ final class VirtualAccountServiceProvider extends ServiceProvider
 
     protected function registerRoutes(): void
     {
-        if (!$this->app->routesAreCached()) {
+        if (! $this->app->routesAreCached()) {
             $config = app('virtual-accounts.config') ?? config('virtual-accounts', []);
             $webhookPath = $config['webhook']['path'] ?? '/virtual-accounts/webhook';
             $rateLimit = $config['webhook']['rate_limit'] ?? '120,1';
 
             Route::group([
                 'prefix' => $webhookPath,
-                'middleware' => ['api', 'throttle:' . $rateLimit],
+                'middleware' => ['api', 'throttle:'.$rateLimit],
             ], function () {
                 Route::post('/{provider}', [WebhookController::class, 'handle'])
                     ->name('virtual-accounts.webhook');
@@ -108,11 +108,11 @@ final class VirtualAccountServiceProvider extends ServiceProvider
 
     protected function scheduleReconciliation(): void
     {
-        if (!$this->app->runningInConsole()) {
+        if (! $this->app->runningInConsole()) {
             return;
         }
 
-        if (!config('virtual-accounts.reconciliation.enabled', true)) {
+        if (! config('virtual-accounts.reconciliation.enabled', true)) {
             return;
         }
 
@@ -122,7 +122,7 @@ final class VirtualAccountServiceProvider extends ServiceProvider
 
             $event = $scheduler->command('virtual-accounts:reconcile');
 
-            match($schedule) {
+            match ($schedule) {
                 'hourly' => $event->hourly(),
                 'weekly' => $event->weekly(),
                 default => $event->daily(),

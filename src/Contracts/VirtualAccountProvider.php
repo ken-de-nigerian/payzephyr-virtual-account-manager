@@ -21,8 +21,9 @@ interface VirtualAccountProvider
     /**
      * Create a virtual account with the provider.
      *
-     * @param array<string, mixed> $payload Customer and account creation data
+     * @param  array<string, mixed>  $payload  Customer and account creation data
      * @return VirtualAccountDTO Normalized virtual account details
+     *
      * @throws VirtualAccountException
      */
     public function createAccount(array $payload): VirtualAccountDTO;
@@ -30,7 +31,7 @@ interface VirtualAccountProvider
     /**
      * Verify webhook authenticity from the provider.
      *
-     * @param Request $request Incoming webhook request
+     * @param  Request  $request  Incoming webhook request
      * @return bool True if webhook is valid, false otherwise
      */
     public function verifyWebhook(Request $request): bool;
@@ -38,8 +39,9 @@ interface VirtualAccountProvider
     /**
      * Parse incoming transfer data from webhook payload.
      *
-     * @param Request $request Webhook request containing transfer data
+     * @param  Request  $request  Webhook request containing transfer data
      * @return IncomingTransferDTO Normalized transfer details
+     *
      * @throws WebhookParseException
      */
     public function parseIncomingTransfer(Request $request): IncomingTransferDTO;
@@ -68,8 +70,9 @@ interface VirtualAccountProvider
     /**
      * Fetch account details from provider (optional reconciliation support).
      *
-     * @param string $accountReference Provider's account reference
+     * @param  string  $accountReference  Provider's account reference
      * @return VirtualAccountDTO Current account state from provider
+     *
      * @throws VirtualAccountException
      */
     public function fetchAccount(string $accountReference): VirtualAccountDTO;
@@ -77,8 +80,23 @@ interface VirtualAccountProvider
     /**
      * Get account balance from provider (if supported).
      *
-     * @param string $accountReference Provider's account reference
+     * @param  string  $accountReference  Provider's account reference
      * @return float|null Current balance or null if not supported
      */
     public function getBalance(string $accountReference): ?float;
+
+    /**
+     * Check if the provider is working (cached result).
+     *
+     * @return bool True if provider is healthy
+     */
+    public function getCachedHealthCheck(): bool;
+
+    /**
+     * Check if this provider supports a specific currency.
+     *
+     * @param  string  $currency  Currency code (e.g., 'NGN', 'USD')
+     * @return bool True if currency is supported
+     */
+    public function isCurrencySupported(string $currency): bool;
 }

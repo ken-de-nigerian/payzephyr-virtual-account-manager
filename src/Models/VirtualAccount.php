@@ -12,6 +12,20 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * Virtual Account Model
  *
  * Represents a virtual bank account created via a provider.
+ *
+ * @property int $id
+ * @property string $customer_id
+ * @property string $account_number
+ * @property string $account_name
+ * @property string $bank_name
+ * @property string $bank_code
+ * @property string $provider_reference
+ * @property string $provider
+ * @property string $currency
+ * @property string $status
+ * @property array|null $metadata
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
  */
 class VirtualAccount extends Model
 {
@@ -44,9 +58,6 @@ class VirtualAccount extends Model
 
     /**
      * Scope to get active accounts.
-     *
-     * @param Builder $query
-     * @return Builder
      */
     public function scopeActive(Builder $query): Builder
     {
@@ -55,10 +66,6 @@ class VirtualAccount extends Model
 
     /**
      * Scope to filter by provider.
-     *
-     * @param Builder $query
-     * @param string $provider
-     * @return Builder
      */
     public function scopeProvider(Builder $query, string $provider): Builder
     {
@@ -81,4 +88,3 @@ class VirtualAccount extends Model
         return $this->update(['status' => 'inactive']);
     }
 }
-

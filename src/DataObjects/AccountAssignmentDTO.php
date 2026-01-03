@@ -12,7 +12,7 @@ namespace PayZephyr\VirtualAccounts\DataObjects;
 final readonly class AccountAssignmentDTO
 {
     /**
-     * @param array<string, mixed> $metadata Additional customer/account data
+     * @param  array<string, mixed>  $metadata  Additional customer/account data
      */
     public function __construct(
         public string $customerId,
@@ -44,4 +44,3 @@ final readonly class AccountAssignmentDTO
         ];
     }
 }
-

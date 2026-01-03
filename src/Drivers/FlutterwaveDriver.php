@@ -6,6 +6,7 @@ namespace PayZephyr\VirtualAccounts\Drivers;
 
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use PayZephyr\VirtualAccounts\DataObjects\IncomingTransferDTO;
 use PayZephyr\VirtualAccounts\DataObjects\VirtualAccountDTO;
 use PayZephyr\VirtualAccounts\Exceptions\InvalidConfigurationException;
@@ -24,6 +25,7 @@ final class FlutterwaveDriver extends AbstractDriver
 
     /**
      * Validate Flutterwave configuration.
+     *
      * @throws VirtualAccountException
      */
     protected function validateConfig(): void
@@ -43,14 +45,15 @@ final class FlutterwaveDriver extends AbstractDriver
     protected function getDefaultHeaders(): array
     {
         return array_merge(parent::getDefaultHeaders(), [
-            'Authorization' => 'Bearer ' . $this->config['secret_key'],
+            'Authorization' => 'Bearer '.$this->config['secret_key'],
         ]);
     }
 
     /**
      * Create virtual account with Flutterwave.
      *
-     * @param array<string, mixed> $payload
+     * @param  array<string, mixed>  $payload
+     *
      * @throws VirtualAccountException
      */
     public function createAccount(array $payload): VirtualAccountDTO
@@ -110,7 +113,7 @@ final class FlutterwaveDriver extends AbstractDriver
         } catch (Throwable $e) {
             throw VirtualAccountException::providerError(
                 $this->getName(),
-                'Failed to create virtual account: ' . $e->getMessage()
+                'Failed to create virtual account: '.$e->getMessage()
             );
         }
     }
@@ -122,15 +125,16 @@ final class FlutterwaveDriver extends AbstractDriver
     {
         $secretHash = $this->config['webhook_secret'] ?? null;
 
-        if (!$secretHash) {
+        if (! $secretHash) {
             // If no secret configured, skip verification (not recommended for production)
             Log::warning('Flutterwave webhook secret not configured, skipping verification');
+
             return true;
         }
 
         $signature = $request->header('verif-hash');
 
-        if (!$signature) {
+        if (! $signature) {
             return false;
         }
 
@@ -139,6 +143,7 @@ final class FlutterwaveDriver extends AbstractDriver
 
     /**
      * Parse incoming transfer from Flutterwave webhook.
+     *
      * @throws WebhookParseException
      * @throws Exception
      */
@@ -213,6 +218,7 @@ final class FlutterwaveDriver extends AbstractDriver
 
     /**
      * Fetch account details from Flutterwave.
+     *
      * @throws VirtualAccountException
      */
     public function fetchAccount(string $accountReference): VirtualAccountDTO
@@ -242,7 +248,7 @@ final class FlutterwaveDriver extends AbstractDriver
         } catch (Throwable $e) {
             throw VirtualAccountException::providerError(
                 $this->getName(),
-                'Failed to fetch account: ' . $e->getMessage()
+                'Failed to fetch account: '.$e->getMessage()
             );
         }
     }
@@ -283,6 +289,7 @@ final class FlutterwaveDriver extends AbstractDriver
     protected function extractFirstName(string $fullName): string
     {
         $parts = explode(' ', trim($fullName), 2);
+
         return $parts[0] ?? $fullName;
     }
 
@@ -292,6 +299,7 @@ final class FlutterwaveDriver extends AbstractDriver
     protected function extractLastName(string $fullName): string
     {
         $parts = explode(' ', trim($fullName), 2);
+
         return $parts[1] ?? $parts[0] ?? '';
     }
 }

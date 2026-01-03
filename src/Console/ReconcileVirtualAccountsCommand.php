@@ -38,7 +38,7 @@ final class ReconcileVirtualAccountsCommand extends Command
             ]
         );
 
-        if (!empty($report['errors'])) {
+        if (! empty($report['errors'])) {
             $this->newLine();
             $this->error('Errors encountered:');
             foreach ($report['errors'] as $error) {

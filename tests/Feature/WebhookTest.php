@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
 use PayZephyr\VirtualAccounts\Events\DepositConfirmed;
 use PayZephyr\VirtualAccounts\Models\IncomingTransfer;
-use PayZephyr\VirtualAccounts\Models\ProviderWebhookLog;
 use PayZephyr\VirtualAccounts\Models\VirtualAccount;
 use PayZephyr\VirtualAccounts\Tests\TestCase;
 
@@ -54,7 +53,7 @@ class WebhookTest extends TestCase
             'verif-hash' => 'test_secret',
         ]);
 
-        $response->assertStatus(200);
+        $response->assertStatus(202);
 
         // Verify webhook was logged
         $this->assertDatabaseHas('provider_webhook_logs', [
@@ -93,6 +92,25 @@ class WebhookTest extends TestCase
             'status' => 'active',
         ]);
 
+        // Create webhook log
+        $webhookLog = \PayZephyr\VirtualAccounts\Models\ProviderWebhookLog::create([
+            'provider' => 'flutterwave',
+            'event_type' => 'charge.completed',
+            'payload' => [
+                'event' => 'charge.completed',
+                'data' => [
+                    'tx_ref' => 'TX_REF_123',
+                    'flw_ref' => 'FLW_REF_123',
+                    'account_number' => '1234567890',
+                    'amount' => 5000.00,
+                    'currency' => 'NGN',
+                    'customer' => ['name' => 'John Doe'],
+                    'created_at' => '2024-01-01T00:00:00Z',
+                ],
+            ],
+            'processed' => false,
+        ]);
+
         $job = new \PayZephyr\VirtualAccounts\Jobs\ProcessIncomingTransfer(
             'flutterwave',
             [
@@ -106,10 +124,11 @@ class WebhookTest extends TestCase
                     'customer' => ['name' => 'John Doe'],
                     'created_at' => '2024-01-01T00:00:00Z',
                 ],
-            ]
+            ],
+            $webhookLog->id
         );
 
-        $job->handle();
+        $job->handle(app(\PayZephyr\VirtualAccounts\Services\DepositDetector::class));
 
         // Verify transfer was saved
         $this->assertDatabaseHas('incoming_transfers', [
@@ -139,16 +158,38 @@ class WebhookTest extends TestCase
             'status' => 'active',
         ]);
 
-        // Create existing transfer
+        // Create existing transfer with correct idempotency key
+        // The idempotency key is calculated as: hash('sha256', 'TX_REF_123:1234567890:5000.00:NGN')
+        $idempotencyKey = hash('sha256', 'TX_REF_123:1234567890:5000.00:NGN');
+
         IncomingTransfer::create([
             'transaction_reference' => 'TX_REF_123',
             'provider_reference' => 'FLW_REF_123',
             'account_number' => '1234567890',
             'amount' => 5000.00,
             'currency' => 'NGN',
+            'sender_name' => 'John Doe',
             'provider' => 'flutterwave',
             'status' => 'confirmed',
-            'idempotency_key' => hash('sha256', 'flutterwave_TX_REF_123'),
+            'idempotency_key' => $idempotencyKey,
+        ]);
+
+        // Create webhook log
+        $webhookLog = \PayZephyr\VirtualAccounts\Models\ProviderWebhookLog::create([
+            'provider' => 'flutterwave',
+            'event_type' => 'charge.completed',
+            'payload' => [
+                'event' => 'charge.completed',
+                'data' => [
+                    'tx_ref' => 'TX_REF_123',
+                    'flw_ref' => 'FLW_REF_123',
+                    'account_number' => '1234567890',
+                    'amount' => 5000.00,
+                    'currency' => 'NGN',
+                    'customer' => ['name' => 'John Doe'],
+                ],
+            ],
+            'processed' => false,
         ]);
 
         $job = new \PayZephyr\VirtualAccounts\Jobs\ProcessIncomingTransfer(
@@ -161,14 +202,15 @@ class WebhookTest extends TestCase
                     'account_number' => '1234567890',
                     'amount' => 5000.00,
                     'currency' => 'NGN',
+                    'customer' => ['name' => 'John Doe'],
                 ],
-            ]
+            ],
+            $webhookLog->id
         );
 
-        $job->handle();
+        $job->handle(app(\PayZephyr\VirtualAccounts\Services\DepositDetector::class));
 
         // Verify only one transfer exists
         $this->assertEquals(1, IncomingTransfer::where('transaction_reference', 'TX_REF_123')->count());
     }
 }
-

@@ -14,8 +14,8 @@ trait HasWebhookValidation
     /**
      * Validate webhook timestamp to prevent replay attacks.
      *
-     * @param array<string, mixed> $payload Webhook payload
-     * @param int $toleranceSeconds Allowed time difference (default: 300 = 5 minutes)
+     * @param  array<string, mixed>  $payload  Webhook payload
+     * @param  int  $toleranceSeconds  Allowed time difference (default: 300 = 5 minutes)
      */
     protected function validateWebhookTimestamp(array $payload, int $toleranceSeconds = VirtualAccountConstants::WEBHOOK_TIMESTAMP_TOLERANCE_SECONDS): bool
     {
@@ -50,7 +50,7 @@ trait HasWebhookValidation
      * Extract timestamp from webhook payload.
      * Override in specific drivers if needed.
      *
-     * @param array<string, mixed> $payload
+     * @param  array<string, mixed>  $payload
      * @return int|null Unix timestamp
      */
     protected function extractWebhookTimestamp(array $payload): ?int
@@ -81,4 +81,3 @@ trait HasWebhookValidation
         return null;
     }
 }
-

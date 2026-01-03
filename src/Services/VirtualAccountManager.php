@@ -14,7 +14,6 @@ use PayZephyr\VirtualAccounts\Events\VirtualAccountCreated;
 use PayZephyr\VirtualAccounts\Exceptions\DriverNotFoundException;
 use PayZephyr\VirtualAccounts\Exceptions\VirtualAccountException;
 use PayZephyr\VirtualAccounts\Models\VirtualAccount;
-use PayZephyr\VirtualAccounts\Services\DriverFactory;
 
 /**
  * Virtual Account Manager
@@ -23,7 +22,6 @@ use PayZephyr\VirtualAccounts\Services\DriverFactory;
  */
 final class VirtualAccountManager
 {
-
     /** @var array<string, VirtualAccountProvider> */
     protected array $drivers = [];
 
@@ -40,6 +38,7 @@ final class VirtualAccountManager
 
     /**
      * Get provider driver instance.
+     *
      * @throws DriverNotFoundException
      */
     public function driver(?string $name = null): VirtualAccountProvider
@@ -52,7 +51,7 @@ final class VirtualAccountManager
 
         $providerConfig = $this->config['providers'][$name] ?? null;
 
-        if (!$providerConfig || !($providerConfig['enabled'] ?? true)) {
+        if (! $providerConfig || ! ($providerConfig['enabled'] ?? true)) {
             throw new DriverNotFoundException("Provider [$name] not found or disabled");
         }
 
@@ -135,7 +134,7 @@ final class VirtualAccountManager
     {
         $account = VirtualAccount::where('account_number', $accountNumber)->first();
 
-        if (!$account) {
+        if (! $account) {
             throw new VirtualAccountException("Account [$accountNumber] not found");
         }
 
@@ -168,7 +167,6 @@ final class VirtualAccountManager
         return $this->config['default'] ?? 'flutterwave';
     }
 
-
     /**
      * Fluent API builder for account assignment.
      */
@@ -184,7 +182,9 @@ final class VirtualAccountManager
 final class AccountBuilder
 {
     protected VirtualAccountManager $manager;
+
     protected array $data = [];
+
     protected ?string $provider = null;
 
     public function __construct(VirtualAccountManager $manager, string $customerId)
@@ -196,51 +196,59 @@ final class AccountBuilder
     public function name(string $name): self
     {
         $this->data['customer_name'] = $name;
+
         return $this;
     }
 
     public function email(string $email): self
     {
         $this->data['customer_email'] = $email;
+
         return $this;
     }
 
     public function phone(string $phone): self
     {
         $this->data['customer_phone'] = $phone;
+
         return $this;
     }
 
     public function bvn(string $bvn): self
     {
         $this->data['bvn'] = $bvn;
+
         return $this;
     }
 
     public function currency(string $currency): self
     {
         $this->data['currency'] = $currency;
+
         return $this;
     }
 
     public function preferredBank(string $bank): self
     {
         $this->data['preferred_bank'] = $bank;
+
         return $this;
     }
 
     public function using(string $provider): self
     {
         $this->provider = $provider;
+
         return $this;
     }
 
     /**
-     * @param array<string, mixed> $metadata
+     * @param  array<string, mixed>  $metadata
      */
     public function metadata(array $metadata): self
     {
         $this->data['metadata'] = $metadata;
+
         return $this;
     }
 

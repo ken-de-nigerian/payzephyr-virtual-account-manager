@@ -18,7 +18,7 @@ class VirtualAccountException extends Exception
     /**
      * Set context.
      *
-     * @param array<string, mixed> $context
+     * @param  array<string, mixed>  $context
      */
     public function setContext(array $context): static
     {
@@ -40,7 +40,7 @@ class VirtualAccountException extends Exception
     /**
      * Create exception with context.
      *
-     * @param array<string, mixed> $context
+     * @param  array<string, mixed>  $context
      */
     public static function withContext(string $message, array $context = [], ?Throwable $previous = null): static
     {

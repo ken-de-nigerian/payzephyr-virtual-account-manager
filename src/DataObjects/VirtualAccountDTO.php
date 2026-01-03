@@ -12,7 +12,7 @@ namespace PayZephyr\VirtualAccounts\DataObjects;
 final readonly class VirtualAccountDTO
 {
     /**
-     * @param array<string, mixed> $metadata Additional provider-specific data
+     * @param  array<string, mixed>  $metadata  Additional provider-specific data
      */
     public function __construct(
         public string $accountNumber,
@@ -29,7 +29,7 @@ final readonly class VirtualAccountDTO
     /**
      * Create DTO from array data.
      *
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     public static function fromArray(array $data): self
     {
@@ -66,4 +66,3 @@ final readonly class VirtualAccountDTO
         ];
     }
 }
-

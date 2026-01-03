@@ -9,25 +9,25 @@ namespace PayZephyr\VirtualAccounts\Constants;
  */
 final class HttpStatusCodes
 {
-    public const int OK = 200;
+    public const OK = 200;
 
-    public const int ACCEPTED = 202;
+    public const ACCEPTED = 202;
 
-    public const int BAD_REQUEST = 400;
+    public const BAD_REQUEST = 400;
 
-    public const int UNAUTHORIZED = 401;
+    public const UNAUTHORIZED = 401;
 
-    public const int FORBIDDEN = 403;
+    public const FORBIDDEN = 403;
 
-    public const int NOT_FOUND = 404;
+    public const NOT_FOUND = 404;
 
-    public const int TOO_MANY_REQUESTS = 429;
+    public const TOO_MANY_REQUESTS = 429;
 
-    public const int INTERNAL_SERVER_ERROR = 500;
+    public const INTERNAL_SERVER_ERROR = 500;
 
-    public const int BAD_GATEWAY = 502;
+    public const BAD_GATEWAY = 502;
 
-    public const int SERVICE_UNAVAILABLE = 503;
+    public const SERVICE_UNAVAILABLE = 503;
 
     /**
      * Check if status code indicates a client error (4xx).
@@ -53,4 +53,3 @@ final class HttpStatusCodes
         return $statusCode >= 200 && $statusCode < 300;
     }
 }
-

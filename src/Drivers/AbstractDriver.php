@@ -43,7 +43,8 @@ abstract class AbstractDriver implements VirtualAccountProvider
     /**
      * Create a new virtual account driver instance.
      *
-     * @param array<string, mixed> $config Provider configuration
+     * @param  array<string, mixed>  $config  Provider configuration
+     *
      * @throws InvalidConfigurationException If required, config is missing.
      */
     public function __construct(array $config = [])
@@ -69,18 +70,24 @@ abstract class AbstractDriver implements VirtualAccountProvider
         $this->client = new Client([
             'base_uri' => $this->config['base_url'] ?? '',
             'timeout' => $this->config['timeout'] ?? VirtualAccountConstants::DEFAULT_TIMEOUT_SECONDS,
-            'verify' => !($this->config['testing_mode'] ?? false),
+            'verify' => ! ($this->config['testing_mode'] ?? false),
             'headers' => $this->getDefaultHeaders(),
         ]);
     }
 
     /**
      * Get the default HTTP headers needed for API requests (like Authorization).
-     * Each driver implements this with their provider's specific headers.
+     * Each driver can override this with their provider's specific headers.
      *
      * @return array<string, string>
      */
-    abstract protected function getDefaultHeaders(): array;
+    protected function getDefaultHeaders(): array
+    {
+        return [
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json',
+        ];
+    }
 
     /**
      * Make an HTTP request to the virtual account provider's API.
@@ -88,10 +95,11 @@ abstract class AbstractDriver implements VirtualAccountProvider
      * Network errors are caught and wrapped with more user-friendly messages
      * to prevent crashes and provide better error context.
      *
-     * @param string $method HTTP method (GET, POST, etc.)
-     * @param string $uri URI endpoint
-     * @param array<string, mixed> $options Additional Guzzle options (json, query, etc.)
+     * @param  string  $method  HTTP method (GET, POST, etc.)
+     * @param  string  $uri  URI endpoint
+     * @param  array<string, mixed>  $options  Additional Guzzle options (json, query, etc.)
      * @return ResponseInterface HTTP response
+     *
      * @throws VirtualAccountException If the HTTP request fails.
      */
     protected function makeRequest(string $method, string $uri, array $options = []): ResponseInterface
@@ -122,7 +130,7 @@ abstract class AbstractDriver implements VirtualAccountProvider
 
     /**
      * Get HTTP client instance with default headers (backward compatibility).
-     * 
+     *
      * @deprecated Use makeRequest() instead for better error handling
      */
     protected function http(): Client
@@ -154,8 +162,9 @@ abstract class AbstractDriver implements VirtualAccountProvider
      *
      * Format: PREFIX_TIMESTAMP_RANDOMHEX
      *
-     * @param string|null $prefix Custom prefix (defaults to provider name in uppercase)
+     * @param  string|null  $prefix  Custom prefix (defaults to provider name in uppercase)
      * @return string Unique reference
+     *
      * @throws RandomException If random number generation fails.
      */
     protected function generateReference(?string $prefix = null): string
@@ -168,7 +177,8 @@ abstract class AbstractDriver implements VirtualAccountProvider
     /**
      * Handle HTTP errors and throw appropriate exceptions.
      *
-     * @param array<string, mixed> $response
+     * @param  array<string, mixed>  $response
+     *
      * @throws VirtualAccountException
      */
     protected function handleError(array $response, string $operation = 'Operation'): void
@@ -210,6 +220,7 @@ abstract class AbstractDriver implements VirtualAccountProvider
         try {
             // Simple connectivity check
             $response = $this->makeRequest('GET', '/health');
+
             return $response->getStatusCode() >= 200 && $response->getStatusCode() < 300;
         } catch (Throwable) {
             return false;
@@ -219,14 +230,14 @@ abstract class AbstractDriver implements VirtualAccountProvider
     /**
      * Write a log message (for debugging and monitoring).
      *
-     * @param string $level Log level: 'info', 'warning', 'error', etc.
-     * @param string $message The log message
-     * @param array<string, mixed> $context Extra data to include in the log
+     * @param  string  $level  Log level: 'info', 'warning', 'error', etc.
+     * @param  string  $message  The log message
+     * @param  array<string, mixed>  $context  Extra data to include in the log
      */
     protected function log(string $level, string $message, array $context = []): void
     {
         $config = config('virtual-accounts', []);
-        if (!($config['logging']['enabled'] ?? true)) {
+        if (! ($config['logging']['enabled'] ?? true)) {
             return;
         }
 
@@ -262,14 +273,15 @@ abstract class AbstractDriver implements VirtualAccountProvider
 
     /**
      * Validate currency is supported.
+     *
      * @throws VirtualAccountException
      */
     protected function validateCurrency(string $currency): void
     {
-        if (!$this->isCurrencySupported($currency)) {
+        if (! $this->isCurrencySupported($currency)) {
             throw VirtualAccountException::providerError(
                 $this->getName(),
-                "Currency $currency is not supported. Supported currencies: " . implode(', ', $this->getSupportedCurrencies())
+                "Currency $currency is not supported. Supported currencies: ".implode(', ', $this->getSupportedCurrencies())
             );
         }
     }

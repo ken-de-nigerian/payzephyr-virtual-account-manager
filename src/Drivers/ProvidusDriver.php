@@ -49,7 +49,7 @@ final class ProvidusDriver extends AbstractDriver
     /**
      * Create virtual account with Providus (stub).
      *
-     * @param array<string, mixed> $payload
+     * @param  array<string, mixed>  $payload
      */
     public function createAccount(array $payload): VirtualAccountDTO
     {
@@ -129,4 +129,3 @@ final class ProvidusDriver extends AbstractDriver
         return false;
     }
 }
-

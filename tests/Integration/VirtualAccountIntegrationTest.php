@@ -9,8 +9,6 @@ use Illuminate\Support\Facades\Event;
 use PayZephyr\VirtualAccounts\Events\DepositConfirmed;
 use PayZephyr\VirtualAccounts\Events\VirtualAccountCreated;
 use PayZephyr\VirtualAccounts\Facades\VirtualAccounts;
-use PayZephyr\VirtualAccounts\Models\IncomingTransfer;
-use PayZephyr\VirtualAccounts\Models\VirtualAccount;
 use PayZephyr\VirtualAccounts\Tests\TestCase;
 
 class VirtualAccountIntegrationTest extends TestCase
@@ -63,9 +61,23 @@ class VirtualAccountIntegrationTest extends TestCase
         $this->assertEquals('1234567890', $retrieved->accountNumber);
 
         // Step 3: Simulate incoming transfer via webhook
-        config(['virtual-accounts.providers.flutterwave.webhook_secret' => 'test_secret']);
+        // The webhook secret is already set in TestCase setUp, so we should use that
+        // But we need to ensure the driver gets the updated config
+        // Update config and recreate manager to pick up webhook secret
+        $this->app['config']->set('virtual-accounts.providers.flutterwave.webhook_secret', 'test_secret');
 
-        $this->postJson('/virtual-accounts/webhook/flutterwave', [
+        // Forget all instances to force recreation with new config
+        $this->app->forgetInstance('virtual-accounts.config');
+        $this->app->forgetInstance(\PayZephyr\VirtualAccounts\Services\VirtualAccountManager::class);
+        $this->app->forgetInstance(\PayZephyr\VirtualAccounts\Services\DriverFactory::class);
+
+        // Clear any cached drivers
+        $reflection = new \ReflectionClass($this->app->make(\PayZephyr\VirtualAccounts\Services\VirtualAccountManager::class));
+        $driversProperty = $reflection->getProperty('drivers');
+        $driversProperty->setAccessible(true);
+        $driversProperty->setValue($this->app->make(\PayZephyr\VirtualAccounts\Services\VirtualAccountManager::class), []);
+
+        $response = $this->postJson('/virtual-accounts/webhook/flutterwave', [
             'event' => 'charge.completed',
             'data' => [
                 'tx_ref' => 'TX_REF_123',
@@ -78,10 +90,32 @@ class VirtualAccountIntegrationTest extends TestCase
             ],
         ], [
             'verif-hash' => 'test_secret',
-        ])->assertStatus(200);
+        ]);
+
+        $response->assertStatus(202);
 
         // Process the job synchronously
         \Illuminate\Support\Facades\Queue::fake();
+
+        // Create webhook log
+        $webhookLog = \PayZephyr\VirtualAccounts\Models\ProviderWebhookLog::create([
+            'provider' => 'flutterwave',
+            'event_type' => 'charge.completed',
+            'payload' => [
+                'event' => 'charge.completed',
+                'data' => [
+                    'tx_ref' => 'TX_REF_123',
+                    'flw_ref' => 'FLW_REF_123',
+                    'account_number' => '1234567890',
+                    'amount' => 5000.00,
+                    'currency' => 'NGN',
+                    'customer' => ['name' => 'John Doe'],
+                    'created_at' => '2024-01-01T00:00:00Z',
+                ],
+            ],
+            'processed' => false,
+        ]);
+
         $job = new \PayZephyr\VirtualAccounts\Jobs\ProcessIncomingTransfer(
             'flutterwave',
             [
@@ -95,9 +129,10 @@ class VirtualAccountIntegrationTest extends TestCase
                     'customer' => ['name' => 'John Doe'],
                     'created_at' => '2024-01-01T00:00:00Z',
                 ],
-            ]
+            ],
+            $webhookLog->id
         );
-        $job->handle();
+        $job->handle(app(\PayZephyr\VirtualAccounts\Services\DepositDetector::class));
 
         // Verify transfer was recorded
         $this->assertDatabaseHas('incoming_transfers', [
@@ -168,8 +203,22 @@ class VirtualAccountIntegrationTest extends TestCase
 
         $this->assertEquals('flutterwave', $account1->provider);
 
-        // Test default provider
-        $account2 = $manager->assignTo('customer_2')
+        // Test default provider - need another mock response
+        $flutterwaveResponse2 = new Response(200, [], json_encode([
+            'status' => 'success',
+            'data' => [
+                'account_number' => '0987654321',
+                'note' => 'Jane Doe',
+                'bank_name' => 'GTBank',
+                'bank_code' => '058',
+                'flw_ref' => 'FLW_REF_456',
+            ],
+        ]));
+
+        // Setup new mock for second account
+        $manager2 = $this->setupMockedProvider('flutterwave', [$flutterwaveResponse2]);
+
+        $account2 = $manager2->assignTo('customer_2')
             ->name('Jane Doe')
             ->email('jane@example.com')
             ->currency('NGN')
@@ -178,4 +227,3 @@ class VirtualAccountIntegrationTest extends TestCase
         $this->assertEquals('flutterwave', $account2->provider);
     }
 }
-

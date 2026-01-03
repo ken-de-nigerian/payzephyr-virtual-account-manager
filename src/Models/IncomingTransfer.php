@@ -12,6 +12,25 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * Incoming Transfer Model
  *
  * Represents an incoming transfer/deposit to a virtual account.
+ *
+ * @property int $id
+ * @property string $idempotency_key
+ * @property string $transaction_reference
+ * @property string $provider_reference
+ * @property string $account_number
+ * @property float|string $amount
+ * @property string $currency
+ * @property string $sender_name
+ * @property string|null $sender_account
+ * @property string|null $sender_bank
+ * @property string|null $narration
+ * @property string|null $session_id
+ * @property string $provider
+ * @property string $status
+ * @property \Illuminate\Support\Carbon|null $settled_at
+ * @property array|null $metadata
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
  */
 class IncomingTransfer extends Model
 {
@@ -51,9 +70,6 @@ class IncomingTransfer extends Model
 
     /**
      * Scope to get confirmed transfers.
-     *
-     * @param Builder $query
-     * @return Builder
      */
     public function scopeConfirmed(Builder $query): Builder
     {
@@ -62,10 +78,6 @@ class IncomingTransfer extends Model
 
     /**
      * Scope to filter by provider.
-     *
-     * @param Builder $query
-     * @param string $provider
-     * @return Builder
      */
     public function scopeProvider(Builder $query, string $provider): Builder
     {
@@ -74,10 +86,6 @@ class IncomingTransfer extends Model
 
     /**
      * Scope to get pending transfers older than given hours.
-     *
-     * @param Builder $query
-     * @param int $hours
-     * @return Builder
      */
     public function scopeStalePending(Builder $query, int $hours = 24): Builder
     {
@@ -104,4 +112,3 @@ class IncomingTransfer extends Model
         ]);
     }
 }
-

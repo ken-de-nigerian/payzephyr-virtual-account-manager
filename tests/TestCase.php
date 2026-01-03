@@ -34,7 +34,7 @@ abstract class TestCase extends Orchestra
         $app['config']->set('virtual-accounts.providers.flutterwave', [
             'driver_class' => \PayZephyr\VirtualAccounts\Drivers\FlutterwaveDriver::class,
             'secret_key' => 'FLWSECK_TEST_xxx',
-            'webhook_secret' => 'test_webhook_secret',
+            'webhook_secret' => 'test_secret',
             'base_url' => 'https://api.flutterwave.com/v3',
             'enabled' => true,
         ]);
@@ -116,4 +116,3 @@ abstract class TestCase extends Orchestra
         return $manager;
     }
 }
-

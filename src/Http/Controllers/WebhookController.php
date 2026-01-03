@@ -36,7 +36,7 @@ final class WebhookController extends Controller
             // Verify webhook signature
             $driver = $this->manager->driver($provider);
 
-            if (!$driver->verifyWebhook($request)) {
+            if (! $driver->verifyWebhook($request)) {
                 Log::warning('Webhook signature verification failed', [
                     'provider' => $provider,
                     'ip' => $request->ip(),

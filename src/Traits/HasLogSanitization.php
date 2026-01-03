@@ -36,7 +36,7 @@ trait HasLogSanitization
     /**
      * Recursively sanitize log context to remove sensitive information.
      *
-     * @param mixed $data Data to sanitize
+     * @param  mixed  $data  Data to sanitize
      * @return mixed Sanitized data
      */
     protected function sanitizeLogContext(mixed $data): mixed
@@ -87,4 +87,3 @@ trait HasLogSanitization
         return false;
     }
 }
-

@@ -26,10 +26,11 @@ final class ProcessIncomingTransfer implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
+
     public int $backoff = 60;
 
     /**
-     * @param array<string, mixed> $payload
+     * @param  array<string, mixed>  $payload
      */
     public function __construct(
         protected string $provider,
@@ -45,8 +46,9 @@ final class ProcessIncomingTransfer implements ShouldQueue
     {
         $webhookLog = ProviderWebhookLog::find($this->webhookLogId);
 
-        if (!$webhookLog) {
+        if (! $webhookLog) {
             Log::error('Webhook log not found', ['id' => $this->webhookLogId]);
+
             return;
         }
 
@@ -66,6 +68,7 @@ final class ProcessIncomingTransfer implements ShouldQueue
                     ]);
 
                     $webhookLog->markProcessed();
+
                     return;
                 }
 

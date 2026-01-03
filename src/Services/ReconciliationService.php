@@ -155,7 +155,7 @@ final class ReconciliationService
     public function investigatePendingTransfers(): array
     {
         $staleHours = config('virtual-accounts.reconciliation.stale_transfer_hours', 24);
-        
+
         $stale = IncomingTransfer::where('status', 'pending')
             ->where('created_at', '<', now()->subHours($staleHours))
             ->get();

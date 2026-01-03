@@ -31,6 +31,7 @@ final class DepositConfirmed
     public function getCustomerId(): ?string
     {
         $account = VirtualAccount::where('account_number', $this->transfer->account_number)->first();
+
         return $account?->customer_id;
     }
 
@@ -39,7 +40,7 @@ final class DepositConfirmed
      */
     public function getAmount(): float
     {
-        return $this->transfer->amount;
+        return (float) $this->transfer->amount;
     }
 
     /**

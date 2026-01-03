@@ -22,9 +22,9 @@ trait HasNetworkErrorHandling
      * This method distinguishes between different types of network errors
      * and provides user-friendly error messages and logging.
      *
-     * @param GuzzleException $exception The network exception that occurred
-     * @param string $method HTTP method that was attempted
-     * @param string $uri URI that was requested
+     * @param  GuzzleException  $exception  The network exception that occurred
+     * @param  string  $method  HTTP method that was attempted
+     * @param  string  $uri  URI that was requested
      */
     protected function handleNetworkError(GuzzleException $exception, string $method, string $uri): void
     {
@@ -73,7 +73,7 @@ trait HasNetworkErrorHandling
      * This method provides better error messages for different types of network errors,
      * making it easier for users to understand what went wrong.
      *
-     * @param GuzzleException $exception The network exception
+     * @param  GuzzleException  $exception  The network exception
      * @return string User-friendly error message
      */
     protected function getNetworkErrorMessage(GuzzleException $exception): string
@@ -106,4 +106,3 @@ trait HasNetworkErrorHandling
         return 'Network error occurred while processing virtual account request. Please check your connection and try again.';
     }
 }
-

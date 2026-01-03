@@ -16,21 +16,21 @@ use Exception;
 final readonly class IncomingTransferDTO
 {
     /**
-     * @param array<string, mixed> $metadata Additional provider-specific data
+     * @param  array<string, mixed>  $metadata  Additional provider-specific data
      */
     public function __construct(
-        public string             $transactionReference,
-        public string             $providerReference,
-        public string             $accountNumber,
-        public float              $amount,
-        public string             $currency,
-        public string             $senderName,
-        public ?string            $senderAccount = null,
-        public ?string            $senderBank = null,
-        public ?string            $narration = null,
-        public ?string            $sessionId = null,
+        public string $transactionReference,
+        public string $providerReference,
+        public string $accountNumber,
+        public float $amount,
+        public string $currency,
+        public string $senderName,
+        public ?string $senderAccount = null,
+        public ?string $senderBank = null,
+        public ?string $narration = null,
+        public ?string $sessionId = null,
         public ?DateTimeInterface $settledAt = null,
-        public array              $metadata = [],
+        public array $metadata = [],
     ) {}
 
     /**
@@ -54,7 +54,8 @@ final readonly class IncomingTransferDTO
     /**
      * Create DTO from array data.
      *
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
+     *
      * @throws Exception
      */
     public static function fromArray(array $data): self
@@ -111,4 +112,3 @@ final readonly class IncomingTransferDTO
         ];
     }
 }
-

@@ -15,7 +15,7 @@ class DriverFactoryTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->factory = new DriverFactory();
+        $this->factory = new DriverFactory;
     }
 
     public function test_can_create_flutterwave_driver(): void
@@ -82,4 +82,3 @@ class DriverFactoryTest extends TestCase
         $this->assertInstanceOf(\PayZephyr\VirtualAccounts\Drivers\FlutterwaveDriver::class, $driver);
     }
 }
-

@@ -11,6 +11,16 @@ use Illuminate\Database\Eloquent\Model;
  * Provider Webhook Log Model
  *
  * Audit trail for all webhooks received from providers.
+ *
+ * @property int $id
+ * @property string $provider
+ * @property string $event_type
+ * @property array $payload
+ * @property string|null $transaction_reference
+ * @property bool $processed
+ * @property string|null $error_message
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
  */
 class ProviderWebhookLog extends Model
 {
@@ -32,9 +42,6 @@ class ProviderWebhookLog extends Model
 
     /**
      * Scope to get unprocessed webhooks.
-     *
-     * @param Builder $query
-     * @return Builder
      */
     public function scopeUnprocessed(Builder $query): Builder
     {
@@ -43,10 +50,6 @@ class ProviderWebhookLog extends Model
 
     /**
      * Scope to filter by provider.
-     *
-     * @param Builder $query
-     * @param string $provider
-     * @return Builder
      */
     public function scopeProvider(Builder $query, string $provider): Builder
     {
@@ -80,4 +83,3 @@ class ProviderWebhookLog extends Model
         return $this->processed === true;
     }
 }
-

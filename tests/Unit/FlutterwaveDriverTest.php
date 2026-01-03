@@ -219,4 +219,3 @@ class FlutterwaveDriverTest extends TestCase
         $this->assertFalse($result);
     }
 }
-

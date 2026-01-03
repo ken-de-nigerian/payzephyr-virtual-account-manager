@@ -207,4 +207,3 @@ class VirtualAccountManagerTest extends TestCase
         $this->assertEquals('1234567890', $account->accountNumber);
     }
 }
-

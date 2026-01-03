@@ -10,8 +10,6 @@ use PayZephyr\VirtualAccounts\DataObjects\IncomingTransferDTO;
 use PayZephyr\VirtualAccounts\DataObjects\VirtualAccountDTO;
 use PayZephyr\VirtualAccounts\Drivers\AbstractDriver;
 use PayZephyr\VirtualAccounts\Exceptions\InvalidConfigurationException;
-use PayZephyr\VirtualAccounts\Exceptions\VirtualAccountException;
-use PayZephyr\VirtualAccounts\Exceptions\WebhookParseException;
 
 class CustomTestDriver extends AbstractDriver implements VirtualAccountProvider
 {
@@ -90,4 +88,3 @@ class CustomTestDriver extends AbstractDriver implements VirtualAccountProvider
         return null;
     }
 }
-

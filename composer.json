@@ -32,9 +32,11 @@
         "illuminate/routing": "^9.0|^10.0|^11.0"
     },
     "require-dev": {
+        "larastan/larastan": "^3.8",
+        "laravel/pint": "^1.0",
         "orchestra/testbench": "^7.0|^8.0|^9.0",
-        "phpunit/phpunit": "^9.5|^10.0",
-        "laravel/pint": "^1.0"
+        "phpstan/phpstan": "^2.1",
+        "phpunit/phpunit": "^9.5|^10.0"
     },
     "autoload": {
         "psr-4": {
@@ -70,4 +72,3 @@
     "minimum-stability": "dev",
     "prefer-stable": true
 }
-

@@ -40,14 +40,14 @@ final class MoniepointDriver extends AbstractDriver
     protected function getDefaultHeaders(): array
     {
         return array_merge(parent::getDefaultHeaders(), [
-            'Authorization' => 'Basic ' . base64_encode($this->config['api_key'] . ':' . $this->config['secret_key']),
+            'Authorization' => 'Basic '.base64_encode($this->config['api_key'].':'.$this->config['secret_key']),
         ]);
     }
 
     /**
      * Create virtual account with Moniepoint (stub).
      *
-     * @param array<string, mixed> $payload
+     * @param  array<string, mixed>  $payload
      */
     public function createAccount(array $payload): VirtualAccountDTO
     {
@@ -127,4 +127,3 @@ final class MoniepointDriver extends AbstractDriver
         return false;
     }
 }
-

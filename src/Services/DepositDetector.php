@@ -23,7 +23,8 @@ final class DepositDetector
     /**
      * Parse transfer from webhook payload.
      *
-     * @param array<string, mixed> $payload
+     * @param  array<string, mixed>  $payload
+     *
      * @throws WebhookParseException
      */
     public function parseTransfer(string $provider, array $payload): IncomingTransferDTO
@@ -38,7 +39,7 @@ final class DepositDetector
 
         } catch (Throwable $e) {
             throw new WebhookParseException(
-                "Failed to parse transfer from $provider: " . $e->getMessage(),
+                "Failed to parse transfer from $provider: ".$e->getMessage(),
                 0,
                 $e
             );

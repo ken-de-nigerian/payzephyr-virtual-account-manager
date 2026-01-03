@@ -21,20 +21,21 @@ final class DriverFactory
     /**
      * Create a driver instance for the given provider name.
      *
-     * @param string $name Provider name (e.g., 'flutterwave', 'moniepoint')
-     * @param array<string, mixed> $config Provider configuration
+     * @param  string  $name  Provider name (e.g., 'flutterwave', 'moniepoint')
+     * @param  array<string, mixed>  $config  Provider configuration
      * @return VirtualAccountProvider Driver instance
+     *
      * @throws DriverNotFoundException
      */
     public function create(string $name, array $config): VirtualAccountProvider
     {
         $class = $this->resolveDriverClass($name);
 
-        if (!class_exists($class)) {
+        if (! class_exists($class)) {
             throw new DriverNotFoundException("Driver class [$class] not found for driver [$name]");
         }
 
-        if (!is_subclass_of($class, VirtualAccountProvider::class)) {
+        if (! is_subclass_of($class, VirtualAccountProvider::class)) {
             throw new DriverNotFoundException("Driver class [$class] must implement VirtualAccountProvider");
         }
 
@@ -47,7 +48,7 @@ final class DriverFactory
      * Uses convention over configuration: 'flutterwave' -> FlutterwaveDriver
      * Falls back to config if driver_class is specified.
      *
-     * @param string $name Provider name
+     * @param  string  $name  Provider name
      * @return string Fully qualified class name
      */
     protected function resolveDriverClass(string $name): string
@@ -75,18 +76,18 @@ final class DriverFactory
     /**
      * Register a custom driver class for a provider name.
      *
-     * @param string $name Provider name
-     * @param string $class Fully qualified class name
-     * @return self
+     * @param  string  $name  Provider name
+     * @param  string  $class  Fully qualified class name
+     *
      * @throws DriverNotFoundException
      */
     public function register(string $name, string $class): self
     {
-        if (!class_exists($class)) {
+        if (! class_exists($class)) {
             throw new DriverNotFoundException("Cannot register driver [$name]: class [$class] does not exist");
         }
 
-        if (!is_subclass_of($class, VirtualAccountProvider::class)) {
+        if (! is_subclass_of($class, VirtualAccountProvider::class)) {
             throw new DriverNotFoundException("Cannot register driver [$name]: class [$class] must implement VirtualAccountProvider");
         }
 
@@ -113,4 +114,3 @@ final class DriverFactory
         return isset($this->drivers[$name]);
     }
 }
-

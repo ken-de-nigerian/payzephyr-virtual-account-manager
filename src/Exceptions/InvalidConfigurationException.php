@@ -9,6 +9,4 @@ namespace PayZephyr\VirtualAccounts\Exceptions;
  *
  * Thrown when virtual account configuration is invalid
  */
-final class InvalidConfigurationException extends VirtualAccountException
-{
-}
+final class InvalidConfigurationException extends VirtualAccountException {}
