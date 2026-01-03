@@ -1,0 +1,73 @@
+{
+    "name": "payzephyr/laravel-virtual-account-manager",
+    "description": "A production-grade Laravel package for managing virtual bank accounts across multiple providers in African fintech ecosystems",
+    "keywords": [
+        "laravel",
+        "virtual-account",
+        "flutterwave",
+        "moniepoint",
+        "providus",
+        "fintech",
+        "africa",
+        "payment",
+        "banking"
+    ],
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "PayZephyr",
+            "email": "support@payzephyr.com"
+        }
+    ],
+    "require": {
+        "php": "^8.1",
+        "guzzlehttp/guzzle": "^7.8",
+        "illuminate/support": "^9.0|^10.0|^11.0",
+        "illuminate/http": "^9.0|^10.0|^11.0",
+        "illuminate/database": "^9.0|^10.0|^11.0",
+        "illuminate/queue": "^9.0|^10.0|^11.0",
+        "illuminate/events": "^9.0|^10.0|^11.0",
+        "illuminate/console": "^9.0|^10.0|^11.0",
+        "illuminate/routing": "^9.0|^10.0|^11.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^7.0|^8.0|^9.0",
+        "phpunit/phpunit": "^9.5|^10.0",
+        "laravel/pint": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "PayZephyr\\VirtualAccounts\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "PayZephyr\\VirtualAccounts\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "test-coverage": "vendor/bin/phpunit --coverage-html coverage",
+        "format": "vendor/bin/pint",
+        "analyse": "vendor/bin/phpstan analyse src"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "PayZephyr\\VirtualAccounts\\VirtualAccountServiceProvider"
+            ],
+            "aliases": {
+                "VirtualAccounts": "PayZephyr\\VirtualAccounts\\Facades\\VirtualAccounts"
+            }
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "preferred-install": "dist",
+        "optimize-autoloader": true
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
+

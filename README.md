@@ -1,145 +1,364 @@
-# Build Prompt — Laravel Virtual Account Manager
+# Laravel Virtual Account Manager
 
-> **Role:** You are a senior Laravel & FinTech infrastructure engineer with experience building payment systems, webhook-driven architectures, and provider abstractions in African and global fintech ecosystems.
+A production-grade Laravel package for managing virtual bank accounts across multiple providers in African fintech ecosystems.
 
----
+[![Latest Version](https://img.shields.io/packagist/v/payzephyr/laravel-virtual-account-manager.svg?style=flat-square)](https://packagist.org/packages/payzephyr/laravel-virtual-account-manager)
+[![Total Downloads](https://img.shields.io/packagist/dt/payzephyr/laravel-virtual-account-manager.svg?style=flat-square)](https://packagist.org/packages/payzephyr/laravel-virtual-account-manager)
+[![License](https://img.shields.io/packagist/l/payzephyr/laravel-virtual-account-manager.svg?style=flat-square)](https://packagist.org/packages/payzephyr/laravel-virtual-account-manager)
 
-## 🎯 Objective
+## Architecture Philosophy
 
-Design and implement a **Laravel Virtual Account Manager** package using the **same architectural principles, folder structure, and coding standards as PayZephyr**.
+This package acts as a **provider orchestration and normalization layer**. It does NOT:
+- Move or hold money
+- Act as a bank
+- Issue virtual accounts directly
+- Bypass provider terms or compliance
 
-This package must act as a **provider orchestration and normalization layer**, NOT a bank or payment processor.
+It ONLY:
+- Orchestrates virtual account providers
+- Normalizes webhook events
+- Provides unified API across providers
+- Ensures idempotent processing
+- Maintains audit trails
 
-It manages:
-- Virtual account creation via third-party providers
-- Deposit detection via webhooks
-- Normalized reconciliation and logging
-- Event-driven settlement triggers
+## Installation
 
----
-
-## 🚫 Explicit Non-Goals (Important)
-
-- Do NOT move or hold money
-- Do NOT act as a bank
-- Do NOT issue virtual accounts directly
-- Do NOT bypass provider terms or compliance
-
-This package **only orchestrates providers and normalizes events**.
-
----
-
-## 🧠 Architectural Philosophy (Same as PayZephyr)
-
-- Driver-based provider architecture
-- Unified internal API regardless of provider
-- Idempotent, event-driven processing
-- Webhook-first design
-- Strong logging and traceability
-- Safe-by-default, extensible-by-design
-
----
-
-## 📦 Package Identity
-
-- **Package name:** laravel-virtual-account-manager
-- **Namespace:** `PayZephyr\VirtualAccounts`
-- **Composer style:** identical to PayZephyr
-- **Providers implemented via drivers**
-
----
-
-## 🗂 Folder Structure (Mirror PayZephyr)
-
-```
-src/
-├── Contracts/
-│   └── VirtualAccountProvider.php
-├── Drivers/
-│   ├── FlutterwaveDriver.php
-│   ├── MoniepointDriver.php
-│   └── ProvidusDriver.php
-├── DataObjects/
-│   ├── VirtualAccountDTO.php
-│   ├── IncomingTransferDTO.php
-├── Models/
-│   ├── VirtualAccount.php
-│   ├── IncomingTransfer.php
-│   └── ProviderWebhookLog.php
-├── Events/
-│   └── DepositConfirmed.php
-├── Services/
-│   ├── VirtualAccountManager.php
-│   ├── DepositDetector.php
-│   └── ReconciliationService.php
-├── Facades/
-│   └── VirtualAccounts.php
-├── Console/
-│   └── ReconcileVirtualAccountsCommand.php
-├── Http/
-│   └── Controllers/WebhookController.php
-└── VirtualAccountServiceProvider.php
+```bash
+composer require payzephyr/laravel-virtual-account-manager
 ```
 
----
+```bash
+php artisan vendor:publish --tag=virtual-accounts-config
+php artisan vendor:publish --tag=virtual-accounts-migrations
+php artisan migrate
+```
 
-## 1️⃣ Provider Contract (Critical)
+## Configuration
+
+```env
+VIRTUAL_ACCOUNTS_DEFAULT_PROVIDER=flutterwave
+
+FLUTTERWAVE_SECRET_KEY=your_secret_key
+FLUTTERWAVE_WEBHOOK_SECRET=your_webhook_secret
+FLUTTERWAVE_ENABLED=true
+```
+
+## Basic Usage
+
+### Create Virtual Account
 
 ```php
-interface VirtualAccountProvider
-{
-    public function createAccount(array $payload): VirtualAccountDTO;
+use PayZephyr\VirtualAccounts\Facades\VirtualAccounts;
 
-    public function verifyWebhook(Request $request): bool;
+// Fluent API
+$account = VirtualAccounts::assignTo($user->id)
+    ->name($user->name)
+    ->email($user->email)
+    ->phone($user->phone)
+    ->currency('NGN')
+    ->using('flutterwave')
+    ->create();
 
-    public function parseIncomingTransfer(Request $request): IncomingTransferDTO;
+// Returns VirtualAccountDTO
+echo $account->accountNumber;  // 0123456789
+echo $account->bankName;       // "Wema Bank"
+echo $account->accountName;    // "John Doe"
+```
+
+### Retrieve Account
+
+```php
+$account = VirtualAccounts::getAccount($userId);
+
+if ($account) {
+    echo "Account Number: {$account->accountNumber}";
+    echo "Bank: {$account->bankName}";
 }
 ```
 
----
-
-## 2️⃣ Unified API Example
+### Listen for Deposits
 
 ```php
-VirtualAccounts::assignTo($user)
-    ->using('flutterwave')
-    ->create();
+// EventServiceProvider.php
+protected $listen = [
+    \PayZephyr\VirtualAccounts\Events\DepositConfirmed::class => [
+        \App\Listeners\CreditUserWallet::class,
+    ],
+];
+
+// App\Listeners\CreditUserWallet.php
+public function handle(DepositConfirmed $event): void
+{
+    $customerId = $event->getCustomerId();
+    $amount = $event->getAmount();
+    
+    // Credit user wallet
+    User::find($customerId)->wallet->credit($amount);
+    
+    Log::info('User wallet credited', [
+        'user_id' => $customerId,
+        'amount' => $amount,
+        'transfer_id' => $event->transfer->id,
+    ]);
+}
 ```
 
----
+## Webhook Setup
 
-## 3️⃣ Webhook Processing Flow
+### Register Webhook URLs
 
-1. Resolve provider driver  
-2. Verify webhook signature  
-3. Persist raw payload  
-4. Normalize incoming transfer  
-5. Ensure idempotency  
-6. Dispatch `DepositConfirmed` event  
+Configure these URLs in your provider dashboards:
 
----
+- Flutterwave: `https://yourdomain.com/virtual-accounts/webhook/flutterwave`
+- Monipoint: `https://yourdomain.com/virtual-accounts/webhook/monipoint`
+- Providus: `https://yourdomain.com/virtual-accounts/webhook/providus`
 
-## 4️⃣ Reconciliation
+### Webhook Processing Flow
 
-Nightly command:
+1. Webhook received → Signature verified
+2. Raw payload logged immediately
+3. Job dispatched to queue
+4. Transfer parsed and normalized
+5. Idempotency check (prevents duplicates)
+6. Transfer persisted to database
+7. `DepositConfirmed` event dispatched
+
+**CRITICAL:** Ensure your queue workers are running:
+
+```bash
+php artisan queue:work
+```
+
+## Reconciliation
+
+Run nightly reconciliation to detect inconsistencies:
 
 ```bash
 php artisan virtual-accounts:reconcile
 ```
 
-Detects:
+This detects:
 - Duplicate transfers
+- Stale pending transfers (>24 hours)
 - Missing confirmations
 - Provider inconsistencies
 
+Automatically scheduled based on config:
+
+```php
+'reconciliation' => [
+    'enabled' => true,
+    'schedule' => 'daily', // hourly, daily, weekly
+    'stale_transfer_hours' => 24,
+],
+```
+
+## Adding Custom Providers
+
+### 1. Create Driver Class
+
+```php
+namespace App\VirtualAccounts\Drivers;
+
+use PayZephyr\VirtualAccounts\Contracts\VirtualAccountProvider;
+use PayZephyr\VirtualAccounts\DataObjects\VirtualAccountDTO;
+use PayZephyr\VirtualAccounts\DataObjects\IncomingTransferDTO;
+
+class CustomBankDriver implements VirtualAccountProvider
+{
+    public function createAccount(array $payload): VirtualAccountDTO
+    {
+        // Call provider API to create account
+        // Return normalized VirtualAccountDTO
+    }
+    
+    public function verifyWebhook(Request $request): bool
+    {
+        // Verify webhook signature
+    }
+    
+    public function parseIncomingTransfer(Request $request): IncomingTransferDTO
+    {
+        // Parse webhook payload
+        // Return normalized IncomingTransferDTO
+    }
+    
+    // ... implement other interface methods
+}
+```
+
+### 2. Register in Config
+
+```php
+'providers' => [
+    'custombank' => [
+        'driver_class' => \App\VirtualAccounts\Drivers\CustomBankDriver::class,
+        'api_key' => env('CUSTOMBANK_API_KEY'),
+        'enabled' => true,
+    ],
+],
+```
+
+## Testing
+
+```php
+use PayZephyr\VirtualAccounts\Tests\TestCase;
+use PayZephyr\VirtualAccounts\Facades\VirtualAccounts;
+
+class VirtualAccountTest extends TestCase
+{
+    public function test_creates_account()
+    {
+        $account = VirtualAccounts::assignTo('user-123')
+            ->name('Test User')
+            ->email('test@example.com')
+            ->using('flutterwave')
+            ->create();
+            
+        $this->assertNotEmpty($account->accountNumber);
+        $this->assertEquals('user-123', $account->customerId);
+    }
+    
+    public function test_processes_deposit()
+    {
+        Event::fake();
+        
+        // Simulate webhook
+        $this->postJson('/virtual-accounts/webhook/flutterwave', [
+            'event' => 'charge.completed',
+            'data' => [
+                'flw_ref' => 'FLW-123',
+                'account_number' => '0123456789',
+                'amount' => 5000,
+                'currency' => 'NGN',
+                'customer' => ['name' => 'John Doe'],
+            ],
+        ]);
+        
+        Event::assertDispatched(DepositConfirmed::class);
+    }
+}
+```
+
+## Security Considerations
+
+### Webhook Verification
+- All webhooks are signature-verified before processing
+- Invalid signatures are rejected with 403
+- Verification can be disabled in non-production (NOT recommended)
+
+### Idempotency
+- Every transfer has unique idempotency key (SHA256 hash)
+- Duplicate webhooks are safely ignored
+- No double-crediting possible
+
+### Audit Trail
+- All raw webhooks logged to `provider_webhook_logs`
+- Full transfer history in `incoming_transfers`
+- Account creation tracked in `virtual_accounts`
+
+## Monitoring
+
+### Key Metrics
+
+```php
+use PayZephyr\VirtualAccounts\Services\ReconciliationService;
+
+$stats = app(ReconciliationService::class)->getStatistics();
+
+// Returns:
+[
+    'total_accounts' => 1500,
+    'total_transfers' => 8234,
+    'confirmed_transfers' => 8200,
+    'pending_transfers' => 34,
+    'total_value' => 42500000.00,
+    'providers' => [
+        'flutterwave' => 1200,
+        'monipoint' => 300,
+    ],
+]
+```
+
+### Health Checks
+
+```php
+$healthy = VirtualAccounts::driver('flutterwave')->healthCheck();
+
+if (!$healthy) {
+    // Alert operations team
+    // Switch to backup provider
+}
+```
+
+## Production Checklist
+
+- [ ] Queue workers running (`supervisord` recommended)
+- [ ] Webhook URLs configured in provider dashboards
+- [ ] Webhook secrets stored securely in `.env`
+- [ ] Database indices created (migrations handle this)
+- [ ] Reconciliation scheduled (auto-configured)
+- [ ] Monitoring alerts configured
+- [ ] Event listeners implemented for `DepositConfirmed`
+- [ ] Backup provider configured
+- [ ] Test webhooks sent from provider dashboards
+- [ ] Rate limiting configured for webhook endpoints
+
+## Documentation
+
+Comprehensive documentation is available in the `docs/` directory:
+
+- [Getting Started](docs/GETTING_STARTED.md) - Installation and basic usage
+- [API Reference](docs/API_REFERENCE.md) - Complete API documentation
+- [Architecture](docs/ARCHITECTURE.md) - Design principles and architecture
+- [Security](docs/SECURITY.md) - Security best practices
+
+## Testing
+
+Run the test suite:
+
+```bash
+composer test
+```
+
+Or with coverage:
+
+```bash
+composer test-coverage
+```
+
+## Contributing
+
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+
+## Support
+
+This package is open-source and community-maintained. For issues:
+- GitHub Issues: [payzephyr/laravel-virtual-account-manager](https://github.com/payzephyr/laravel-virtual-account-manager/issues)
+- Documentation: See `docs/` directory
+
+## License
+
+MIT License - See LICENSE file
+
 ---
 
-## 🎯 Quality Bar
+**Built for African FinTech Infrastructure**
 
-- Fintech-grade correctness
-- Event-driven
-- Traceable
-- Provider-agnostic
+This package is designed to power real fintech systems while remaining:
+- Fully open-source
+- Safe by default
+- Extensible by design
 - Production-minded
+- Compliant with provider terms
 
-Build this package as if it will power **real African fintech systems**, while remaining fully open-source and safe.
+---
+
+**Built for African FinTech Infrastructure**
+
+This package is designed to power real fintech systems while remaining:
+- Fully open-source
+- Safe by default
+- Extensible by design
+- Production-minded
+- Compliant with provider terms
